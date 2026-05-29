@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOGOCHECK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:         #060606;
+  --s1:         #0d0d0d;
+  --s2:         #131313;
+  --s3:         #1a1a1a;
+  --border:     #1e1e1e;
+  --border2:    #282828;
+  --text:       #d8d4ca;
+  --muted:      #484844;
+  --accent:     #c5f03a;
+  --accent-dim: rgba(197,240,58,0.08);
+  --real:       #3affa0;
+  --real-dim:   rgba(58,255,160,0.08);
+  --fake:       #ff3c5f;
+  --fake-dim:   rgba(255,60,95,0.08);
+  --font:       'IBM Plex Mono', monospace;
+}
+
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 13px; overflow: hidden; }
+
+/* ── Layout ─────────────────────────── */
+.app { display: grid; grid-template-rows: 46px 1fr; height: 100vh; }
+
+/* ── Header ──────────────────────────── */
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--s1);
+  flex-shrink: 0;
+}
+.logo { font-size: 14px; font-weight: 600; letter-spacing: 0.25em; color: var(--accent); text-decoration: none; }
+.logo span { color: var(--muted); font-weight: 300; }
+
+.header-right { display: flex; align-items: center; gap: 24px; }
+.nav-link {
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none; transition: color .15s;
+}
+.nav-link:hover { color: var(--accent); }
+.sys-status { display: flex; align-items: center; gap: 8px; font-size: 10px; color: var(--muted); letter-spacing: 0.08em; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--real); animation: blink 2.5s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+/* ── Main ────────────────────────────── */
+main { display: grid; grid-template-columns: 340px 1fr; overflow: hidden; }
+
+/* ── Left panel ──────────────────────── */
+.left { display: flex; flex-direction: column; border-right: 1px solid var(--border); overflow: hidden; background: var(--s1); }
+
+/* Drop zone */
+.dropzone {
+  margin: 18px 18px 0;
+  border: 1px dashed var(--border2);
+  padding: 28px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+.dropzone::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--accent-dim);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.dropzone:hover::before, .dropzone.over::before { opacity: 1; }
+.dropzone:hover, .dropzone.over { border-color: var(--accent); }
+.dropzone.over .dz-icon { transform: translateY(-3px) scale(1.1); }
+
+.dz-icon {
+  font-size: 26px; margin-bottom: 10px;
+  transition: transform .25s ease;
+  display: block; line-height: 1;
+}
+.dz-title { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; margin-bottom: 5px; color: var(--text); }
+.dz-sub { font-size: 10px; color: var(--muted); letter-spacing: 0.04em; }
+#file-input { display: none; }
+
+/* Queue */
+.q-label {
+  padding: 12px 18px 8px;
+  font-size: 9px; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.queue { flex: 1; overflow-y: auto; }
+.queue::-webkit-scrollbar { width: 3px; }
+.queue::-webkit-scrollbar-thumb { background: var(--s3); }
+
+.empty-state {
+  padding: 40px 18px; text-align: center; color: var(--muted);
+  font-size: 10px; line-height: 2.2; letter-spacing: 0.04em;
+}
+
+/* File card */
+.file-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 18px; cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: background .15s, border-color .15s;
+  animation: slide-in .2s ease;
+}
+@keyframes slide-in { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:none} }
+.file-card:hover { background: var(--s2); }
+.file-card.active { background: var(--s2); border-left-color: var(--accent); }
+
+.badge {
+  font-size: 9px; font-weight: 600; padding: 2px 5px;
+  letter-spacing: 0.06em; border: 1px solid; flex-shrink: 0;
+}
+.badge-img { color: var(--accent); border-color: var(--accent); }
+.badge-vid { color: #7b9eff; border-color: #7b9eff; }
+
+.fc-info { flex: 1; min-width: 0; }
+.fc-name { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fc-status { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.fc-status.ok  { color: var(--real); }
+.fc-status.err { color: var(--fake); }
+.fc-status.run { color: var(--accent); }
+
+.spinner {
+  width: 13px; height: 13px; border-radius: 50%;
+  border: 1.5px solid var(--s3); border-top-color: var(--accent);
+  animation: spin .7s linear infinite; flex-shrink: 0;
+}
+@keyframes spin { to{transform:rotate(360deg)} }
+
+/* Settings */
+.settings {
+  border-top: 1px solid var(--border);
+  padding: 14px 18px; flex-shrink: 0;
+}
+.setting-row {
+  display: flex; align-items: center;
+  gap: 10px; margin-bottom: 9px;
+}
+.setting-row:last-child { margin-bottom: 0; }
+.sl { font-size: 9px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; flex: 1; }
+.sv { font-size: 11px; color: var(--accent); width: 36px; text-align: right; flex-shrink: 0; }
+
+input[type=range] {
+  -webkit-appearance: none; width: 100px; height: 2px;
+  background: var(--border2); outline: none; cursor: pointer; flex-shrink: 0;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 10px; height: 10px;
+  border-radius: 50%; background: var(--accent); cursor: pointer;
+}
+
+/* ── Right panel ─────────────────────── */
+.right { display: flex; flex-direction: column; overflow: hidden; }
+
+/* Viewer */
+.viewer {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  background: var(--bg); position: relative; overflow: hidden;
+}
+
+.viewer-empty { text-align: center; }
+.ve-title {
+  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--border2); margin-bottom: 12px;
+}
+.ve-hints { font-size: 10px; color: var(--muted); line-height: 2.4; }
+.ve-dot-real { color: var(--real); }
+.ve-dot-fake { color: var(--fake); }
+
+/* scan line when processing */
+.viewer.scanning::after {
+  content: '';
+  position: absolute; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%);
+  animation: scanline 1.4s ease-in-out infinite;
+}
+@keyframes scanline { 0%{top:0} 100%{top:100%} }
+
+.result-img, .result-video {
+  max-width: 100%; max-height: 100%; object-fit: contain;
+  animation: pop-in .3s ease;
+}
+@keyframes pop-in { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:none} }
+
+/* ── Bottom: detections ──────────────── */
+.det-panel {
+  border-top: 1px solid var(--border);
+  background: var(--s1);
+  flex-shrink: 0;
+  min-height: 88px; max-height: 180px;
+  overflow: hidden;
+}
+.det-scroll { display: flex; overflow-x: auto; height: 100%; }
+.det-scroll::-webkit-scrollbar { height: 3px; }
+.det-scroll::-webkit-scrollbar-thumb { background: var(--s3); }
+
+.det-card {
+  padding: 14px 20px; border-right: 1px solid var(--border);
+  min-width: 190px; flex-shrink: 0;
+  animation: pop-in .3s ease;
+}
+.det-verdict {
+  font-size: 16px; font-weight: 600; letter-spacing: 0.1em; margin-bottom: 6px;
+}
+.dv-real { color: var(--real); }
+.dv-fake { color: var(--fake); }
+.det-brand { font-size: 11px; margin-bottom: 10px; letter-spacing: 0.06em; }
+
+.meta { display: flex; flex-direction: column; gap: 4px; }
+.meta-row { display: flex; justify-content: space-between; gap: 10px; }
+.mk { font-size: 9px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
+.mv { font-size: 10px; color: var(--text); }
+
+.sim-bar { height: 2px; background: var(--border2); margin-top: 8px; overflow: hidden; }
+.sim-fill { height: 100%; transition: width .6s ease; }
+.sf-real { background: var(--real); }
+.sf-fake { background: var(--fake); }
+
+.no-det {
+  padding: 0 20px; height: 100%;
+  display: flex; align-items: center;
+  font-size: 10px; color: var(--muted); letter-spacing: 0.06em;
+}
+
+/* video bar */
+.vid-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px; height: 100%;
+}
+.vid-info { font-size: 10px; color: var(--muted); letter-spacing: 0.05em; }
+
+.dl-btn {
+  padding: 6px 14px; background: transparent;
+  border: 1px solid var(--accent); color: var(--accent);
+  font-family: var(--font); font-size: 10px; letter-spacing: 0.1em;
+  cursor: pointer; transition: background .15s, color .15s; text-decoration: none;
+  display: inline-block; text-align: center;
+}
+.dl-btn:hover { background: var(--accent); color: var(--bg); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <a class="logo" href="/">LOGO<span>CHECK</span></a>
+    <div class="header-right">
+      <a class="nav-link" href="/history">ИСТОРИЯ</a>
+      <div class="sys-status">
+        <span class="dot"></span>
+        <span>СИСТЕМА ГОТОВА</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ── Left ── -->
+    <aside class="left">
+
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="file-input" multiple accept="image/*,video/*">
+        <span class="dz-icon">◈</span>
+        <div class="dz-title">ПЕРЕТАЩИ ИЛИ НАЖМИ ДЛЯ ЗАГРУЗКИ</div>
+        <div class="dz-sub">JPG · PNG · MP4 · AVI · MOV · MKV</div>
+      </div>
+
+      <div class="q-label">ФАЙЛЫ</div>
+      <div class="queue" id="queue">
+        <div class="empty-state">
+          Загрузи фото или видео<br>
+          чтобы начать проверку
+        </div>
+      </div>
+
+      <div class="settings">
+        <div class="setting-row">
+          <span class="sl">ПОРОГ ФЕЙКА</span>
+          <input type="range" id="s-threshold" min="0.50" max="0.99" step="0.01" value="0.75">
+          <span class="sv" id="v-threshold">0.75</span>
+        </div>
+        <div class="setting-row">
+          <span class="sl">CONF ДЕТЕКТОРА</span>
+          <input type="range" id="s-conf" min="0.10" max="0.90" step="0.05" value="0.30">
+          <span class="sv" id="v-conf">0.30</span>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ── Right ── -->
+    <section class="right">
+      <div class="viewer" id="viewer">
+        <div class="viewer-empty">
+          <div class="ve-title">результат появится здесь</div>
+          <div class="ve-hints">
+            <span class="ve-dot-real">●</span> настоящий логотип<br>
+            <span class="ve-dot-fake">●</span> поддельный логотип<br>
+            ◈ &nbsp;загрузи файл слева
+          </div>
+        </div>
+      </div>
+      <div class="det-panel" id="det-panel" style="display:none"></div>
+    </section>
+  </main>
+
+</div>
+<script>
+const dropzone  = document.getElementById('dropzone');
+const fileInput = document.getElementById('file-input');
+const queueEl   = document.getElementById('queue');
+const viewer    = document.getElementById('viewer');
+const detPanel  = document.getElementById('det-panel');
+
+const sThreshold = document.getElementById('s-threshold');
+const vThreshold = document.getElementById('v-threshold');
+const sConf      = document.getElementById('s-conf');
+const vConf      = document.getElementById('v-conf');
+
+sThreshold.oninput = () => { vThreshold.textContent = (+sThreshold.value).toFixed(2); };
+sConf.oninput      = () => { vConf.textContent      = (+sConf.value).toFixed(2); };
+
+let items    = [];
+let activeId = null;
+
+/* ── Drag & Drop ─────────────────────── */
+dropzone.addEventListener('click',     () => fileInput.click());
+dropzone.addEventListener('dragover',  e  => { e.preventDefault(); dropzone.classList.add('over'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('over'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault(); dropzone.classList.remove('over');
+  addFiles([...e.dataTransfer.files]);
+});
+fileInput.addEventListener('change', () => addFiles([...fileInput.files]));
+
+const isImg = n => /\.(jpe?g|png|bmp|webp)$/i.test(n);
+const isVid = n => /\.(mp4|avi|mov|mkv)$/i.test(n);
+
+/* ── File handling ───────────────────── */
+function addFiles(files) {
+  const valid = files.filter(f => isImg(f.name) || isVid(f.name));
+  if (!valid.length) return;
+  valid.forEach(f => {
+    const id = Math.random().toString(36).slice(2, 10);
+    const item = { id, name: f.name, ftype: isImg(f.name) ? 'img' : 'vid',
+                   status: 'pending', result: null, err: null, file: f };
+    items.push(item);
+    if (!activeId) activeId = id;
+    renderQueue();
+    upload(item);
+  });
+}
+
+/* ── Upload ──────────────────────────── */
+async function upload(item) {
+  item.status = 'run';
+  renderQueue();
+  if (activeId === item.id) renderViewer(item);
+
+  const fd = new FormData();
+  fd.append('files', item.file);
+  fd.append('threshold', sThreshold.value);
+  fd.append('conf', sConf.value);
+
+  try {
+    const r = await fetch('/api/verify', { method: 'POST', body: fd });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    const res = d.results?.[0];
+    if (!res) throw new Error('Пустой ответ сервера');
+    if (res.error) throw new Error(res.error);
+    item.status = 'ok';
+    item.result = res;
+  } catch(e) {
+    item.status = 'err';
+    item.err = e.message;
+  }
+
+  renderQueue();
+  if (activeId === item.id) renderViewer(item);
+}
+
+/* ── Queue render ────────────────────── */
+function renderQueue() {
+  if (!items.length) {
+    queueEl.innerHTML = '<div class="empty-state">Загрузи фото или видео<br>чтобы начать проверку</div>';
+    return;
+  }
+  queueEl.innerHTML = items.map(it => {
+    const badge = `<span class="badge badge-${it.ftype}">${it.ftype === 'img' ? 'IMG' : 'VID'}</span>`;
+    const spin  = it.status === 'run' ? '<div class="spinner"></div>' : '';
+    const statusMap = {
+      pending: ['', 'ожидание...'],
+      run:     ['run', 'обработка...'],
+      ok:      ['ok',  `готово · ${it.result?.detections?.length ?? 0} лог.`],
+      err:     ['err', 'ошибка'],
+    };
+    const [cls, txt] = statusMap[it.status] || ['', ''];
+    const active = activeId === it.id ? 'active' : '';
+    return `<div class="file-card ${active}" onclick="selectItem('${it.id}')">
+      ${badge}
+      <div class="fc-info">
+        <div class="fc-name" title="${it.name}">${it.name}</div>
+        <div class="fc-status ${cls}">${txt}</div>
+      </div>
+      ${spin}
+    </div>`;
+  }).join('');
+}
+
+function selectItem(id) {
+  activeId = id;
+  renderQueue();
+  const item = items.find(i => i.id === id);
+  if (item) renderViewer(item);
+}
+
+/* ── Viewer render ───────────────────── */
+function renderViewer(item) {
+  if (item.status === 'run' || item.status === 'pending') {
+    viewer.className = 'viewer scanning';
+    viewer.innerHTML = `<div class="viewer-empty">
+      <div class="ve-title" style="color:var(--accent)">АНАЛИЗ...</div>
+      <div class="ve-hints" style="color:var(--muted)">${item.name}</div>
+    </div>`;
+    detPanel.style.display = 'none';
+    return;
+  }
+
+  viewer.className = 'viewer';
+
+  if (item.status === 'err') {
+    viewer.innerHTML = `<div class="viewer-empty">
+      <div class="ve-title" style="color:var(--fake)">ОШИБКА</div>
+      <div class="ve-hints">${item.err || 'Неизвестная ошибка'}</div>
+    </div>`;
+    detPanel.style.display = 'none';
+    return;
+  }
+
+  if (!item.result) return;
+  const { result_url, type, detections } = item.result;
+
+  // Media
+  if (type === 'image') {
+    viewer.innerHTML = `<img class="result-img" src="${result_url}?t=${Date.now()}" alt="result">`;
+  } else {
+    viewer.innerHTML = `<video class="result-video" controls playsinline>
+      <source src="${result_url}" type="video/mp4">
+    </video>`;
+  }
+
+  // Bottom panel
+  detPanel.style.display = '';
+
+  if (type === 'image' && detections?.length) {
+    detPanel.innerHTML = `<div class="det-scroll">${
+      detections.map(d => {
+        const vc = d.is_fake ? 'dv-fake' : 'dv-real';
+        const vt = d.is_fake ? 'FAKE' : 'REAL';
+        const fc = d.is_fake ? 'sf-fake' : 'sf-real';
+        const pct = Math.round(d.similarity * 100);
+        return `<div class="det-card">
+          <div class="det-verdict ${vc}">${vt}</div>
+          <div class="det-brand">${d.brand.toUpperCase()}</div>
+          <div class="meta">
+            <div class="meta-row"><span class="mk">СХОДСТВО</span><span class="mv">${d.similarity.toFixed(3)}</span></div>
+            <div class="meta-row"><span class="mk">УВЕРЕННОСТЬ</span><span class="mv">${d.cls_conf.toFixed(3)}</span></div>
+          </div>
+          <div class="sim-bar"><div class="sim-fill ${fc}" style="width:${pct}%"></div></div>
+        </div>`;
+      }).join('')
+    }</div>`;
+  } else if (type === 'video') {
+    detPanel.innerHTML = `<div class="vid-bar">
+      <span class="vid-info">ВИДЕО ОБРАБОТАНО</span>
+      <a class="dl-btn" href="${result_url}" download>↓ СКАЧАТЬ РЕЗУЛЬТАТ</a>
+    </div>`;
+  } else {
+    detPanel.innerHTML = `<div class="det-scroll"><div class="no-det">Логотипы не обнаружены на изображении</div></div>`;
+  }
+}
+</script>
+</body>
+</html>

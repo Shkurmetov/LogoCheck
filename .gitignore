@@ -1,0 +1,51 @@
+# Виртуальные окружения
+.venv/
+.venv311/
+venv/
+env/
+
+# Рабочие папки с моделями и данными (гигабайты — не для гита)
+logo_recognition_work/
+logo_recognition_work_v2/
+logo_recognition_work*/
+
+# Веса моделей
+*.pt
+*.pth
+*.onnx
+
+# Датасеты
+datasets/
+
+# Тестовые изображения и видео
+test_image/
+testiki/
+
+# Результаты работы приложения
+web_uploads/
+web_results/
+gradcam_results/
+fake_eval/
+comparison/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.Python
+
+# PyCharm
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Временные файлы
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Ultralytics runs (создаются при обучении)
+runs/

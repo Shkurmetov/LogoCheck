@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  logo-recognition:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: logo_recognition
+
+    ports:
+      - "5000:5000"
+
+    volumes:
+      - D:/DIPLOM/logo_recognition_work_v2:/data/work
+
+    environment:
+      - LOGO_WORK_DIR=/data/work
+
+    restart: unless-stopped
+
+    # Раскомментируй если есть NVIDIA GPU и установлен nvidia-container-toolkit:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]

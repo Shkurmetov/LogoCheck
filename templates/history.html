@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOGOCHECK — ИСТОРИЯ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:         #060606;
+  --s1:         #0d0d0d;
+  --s2:         #131313;
+  --s3:         #1a1a1a;
+  --border:     #1e1e1e;
+  --border2:    #282828;
+  --text:       #d8d4ca;
+  --muted:      #484844;
+  --accent:     #c5f03a;
+  --accent-dim: rgba(197,240,58,0.08);
+  --real:       #3affa0;
+  --real-dim:   rgba(58,255,160,0.08);
+  --fake:       #ff3c5f;
+  --fake-dim:   rgba(255,60,95,0.08);
+  --font:       'IBM Plex Mono', monospace;
+}
+
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 13px; }
+
+/* ── Header ─────────────────────────── */
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 46px;
+  border-bottom: 1px solid var(--border);
+  background: var(--s1);
+  position: sticky; top: 0; z-index: 10;
+}
+.logo { font-size: 14px; font-weight: 600; letter-spacing: 0.25em; color: var(--accent); text-decoration: none; }
+.logo span { color: var(--muted); font-weight: 300; }
+.nav { display: flex; gap: 24px; align-items: center; }
+.nav a {
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none; transition: color .15s;
+}
+.nav a:hover, .nav a.active { color: var(--accent); }
+
+/* ── Page layout ─────────────────────── */
+.page { max-width: 1200px; margin: 0 auto; padding: 28px 24px; }
+
+/* ── Stats row ───────────────────────── */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
+.stat-card {
+  background: var(--s1); border: 1px solid var(--border);
+  padding: 18px 20px;
+}
+.stat-label { font-size: 9px; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+.stat-value { font-size: 28px; font-weight: 600; line-height: 1; }
+.sv-total  { color: var(--text); }
+.sv-real   { color: var(--real); }
+.sv-fake   { color: var(--fake); }
+.sv-accent { color: var(--accent); }
+
+/* ── Top brands ──────────────────────── */
+.section-title {
+  font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 12px;
+}
+.brands-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+.brand-pill {
+  background: var(--s2); border: 1px solid var(--border2);
+  padding: 5px 12px; font-size: 10px; letter-spacing: 0.08em;
+  display: flex; align-items: center; gap: 8px;
+}
+.brand-cnt { color: var(--accent); font-weight: 600; }
+
+/* ── Filters ─────────────────────────── */
+.filters {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 14px; flex-wrap: wrap;
+}
+.filter-btn {
+  background: transparent; border: 1px solid var(--border2);
+  color: var(--muted); font-family: var(--font);
+  font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 5px 12px; cursor: pointer; transition: all .15s;
+}
+.filter-btn:hover   { border-color: var(--accent); color: var(--accent); }
+.filter-btn.active  { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+.filter-btn.f-real.active  { border-color: var(--real); color: var(--real); background: var(--real-dim); }
+.filter-btn.f-fake.active  { border-color: var(--fake); color: var(--fake); background: var(--fake-dim); }
+.filter-sep { width: 1px; height: 20px; background: var(--border); }
+.search-box {
+  background: var(--s2); border: 1px solid var(--border2);
+  color: var(--text); font-family: var(--font); font-size: 11px;
+  padding: 5px 10px; outline: none; flex: 1; max-width: 220px;
+  transition: border-color .15s;
+}
+.search-box:focus { border-color: var(--accent); }
+.search-box::placeholder { color: var(--muted); }
+
+/* ── Table ───────────────────────────── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  text-align: left; padding: 8px 14px;
+  font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted); border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background .1s;
+  animation: row-in .2s ease;
+}
+@keyframes row-in { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+tbody tr:hover { background: var(--s2); }
+td {
+  padding: 9px 14px; font-size: 11px;
+  vertical-align: middle; white-space: nowrap;
+}
+.td-id    { color: var(--muted); font-size: 10px; }
+.td-time  { color: var(--muted); font-size: 10px; }
+.td-file  { color: var(--text); max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+
+.verdict-badge {
+  font-size: 9px; font-weight: 600; padding: 2px 7px;
+  letter-spacing: 0.08em; border: 1px solid;
+}
+.vb-real { color: var(--real); border-color: var(--real); background: var(--real-dim); }
+.vb-fake { color: var(--fake); border-color: var(--fake); background: var(--fake-dim); }
+.vb-video { color: #7b9eff; border-color: #7b9eff; background: rgba(123,158,255,.08); }
+.vb-none  { color: var(--muted); border-color: var(--muted); }
+
+.sim-cell { display: flex; align-items: center; gap: 8px; }
+.sim-mini { width: 48px; height: 2px; background: var(--border2); }
+.sm-fill-real { height: 100%; background: var(--real); }
+.sm-fill-fake { height: 100%; background: var(--fake); }
+
+/* ── Empty / loading ─────────────────── */
+.table-msg {
+  text-align: center; padding: 60px 20px;
+  font-size: 10px; color: var(--muted); letter-spacing: 0.06em; line-height: 2.4;
+}
+.spinner-inline {
+  display: inline-block; width: 14px; height: 14px; border-radius: 50%;
+  border: 1.5px solid var(--s3); border-top-color: var(--accent);
+  animation: spin .7s linear infinite; vertical-align: middle; margin-right: 6px;
+}
+@keyframes spin { to{transform:rotate(360deg)} }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="/">LOGO<span>CHECK</span></a>
+  <nav class="nav">
+    <a href="/">ПРОВЕРКА</a>
+    <a href="/history" class="active">ИСТОРИЯ</a>
+  </nav>
+</header>
+
+<div class="page">
+
+  <!-- Статистика -->
+  <div class="stats-row" id="stats-row">
+    <div class="stat-card"><div class="stat-label">ВСЕГО ПРОВЕРОК</div><div class="stat-value sv-total" id="st-total">—</div></div>
+    <div class="stat-card"><div class="stat-label">НАСТОЯЩИХ</div><div class="stat-value sv-real" id="st-real">—</div></div>
+    <div class="stat-card"><div class="stat-label">ПОДДЕЛЬНЫХ</div><div class="stat-value sv-fake" id="st-fake">—</div></div>
+    <div class="stat-card"><div class="stat-label">ДОЛЯ ФЕЙКОВ</div><div class="stat-value sv-accent" id="st-rate">—</div></div>
+  </div>
+
+  <!-- Топ брендов -->
+  <div class="section-title">ТОП БРЕНДОВ</div>
+  <div class="brands-row" id="brands-row">
+    <span style="font-size:10px;color:var(--muted)">Загрузка...</span>
+  </div>
+
+  <!-- Фильтры -->
+  <div class="filters">
+    <button class="filter-btn active" data-filter="all"    onclick="setFilter('all',this)">ВСЕ</button>
+    <button class="filter-btn f-real" data-filter="real"   onclick="setFilter('real',this)">НАСТОЯЩИЕ</button>
+    <button class="filter-btn f-fake" data-filter="fake"   onclick="setFilter('fake',this)">ФЕЙКИ</button>
+    <button class="filter-btn"        data-filter="video"  onclick="setFilter('video',this)">ВИДЕО</button>
+    <div class="filter-sep"></div>
+    <input class="search-box" id="search-box" placeholder="поиск по бренду / файлу..." oninput="renderTable()">
+  </div>
+
+  <!-- Таблица -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>ВРЕМЯ (UTC)</th>
+          <th>ФАЙЛ</th>
+          <th>ТИП</th>
+          <th>БРЕНД</th>
+          <th>ВЕРДИКТ</th>
+          <th>СХОДСТВО</th>
+          <th>УВЕРЕННОСТЬ</th>
+          <th>ПОРОГ</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="9"><div class="table-msg"><span class="spinner-inline"></span>Загрузка...</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+let allRows = [];
+let activeFilter = 'all';
+
+async function loadData() {
+  try {
+    const r = await fetch('/api/history?limit=500');
+    const d = await r.json();
+    allRows = d.rows || [];
+    renderStats(d.stats || {});
+    renderBrands(d.stats?.top_brands || []);
+    renderTable();
+  } catch(e) {
+    document.getElementById('tbody').innerHTML =
+      `<tr><td colspan="9"><div class="table-msg">Ошибка загрузки: ${e.message}</div></td></tr>`;
+  }
+}
+
+function renderStats(s) {
+  document.getElementById('st-total').textContent = s.total ?? 0;
+  document.getElementById('st-real').textContent  = s.real  ?? 0;
+  document.getElementById('st-fake').textContent  = s.fake  ?? 0;
+  const rate = s.total ? Math.round((s.fake / s.total) * 100) : 0;
+  document.getElementById('st-rate').textContent  = rate + '%';
+}
+
+function renderBrands(brands) {
+  const el = document.getElementById('brands-row');
+  if (!brands.length) { el.innerHTML = '<span style="font-size:10px;color:var(--muted)">Нет данных</span>'; return; }
+  el.innerHTML = brands.map(b =>
+    `<div class="brand-pill"><span>${b.brand.toUpperCase()}</span><span class="brand-cnt">${b.cnt}</span></div>`
+  ).join('');
+}
+
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  const q = document.getElementById('search-box').value.toLowerCase();
+
+  const filtered = allRows.filter(r => {
+    if (activeFilter === 'real'  && r.is_fake !== 0)  return false;
+    if (activeFilter === 'fake'  && r.is_fake !== 1)  return false;
+    if (activeFilter === 'video' && r.file_type !== 'video') return false;
+    if (q && !r.filename.toLowerCase().includes(q)
+          && !(r.brand || '').toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  if (!filtered.length) {
+    document.getElementById('tbody').innerHTML =
+      `<tr><td colspan="9"><div class="table-msg">Записей не найдено</div></td></tr>`;
+    return;
+  }
+
+  document.getElementById('tbody').innerHTML = filtered.map(r => {
+    // Вердикт
+    let badge;
+    if (r.file_type === 'video') {
+      badge = `<span class="verdict-badge vb-video">ВИДЕО</span>`;
+    } else if (r.is_fake === null) {
+      badge = `<span class="verdict-badge vb-none">—</span>`;
+    } else if (r.is_fake === 1) {
+      badge = `<span class="verdict-badge vb-fake">FAKE</span>`;
+    } else {
+      badge = `<span class="verdict-badge vb-real">REAL</span>`;
+    }
+
+    // Сходство с мини-баром
+    let simCell = '<td>—</td>';
+    if (r.similarity !== null) {
+      const pct = Math.round(r.similarity * 100);
+      const cls = r.is_fake ? 'sm-fill-fake' : 'sm-fill-real';
+      simCell = `<td><div class="sim-cell">
+        <span>${r.similarity.toFixed(3)}</span>
+        <div class="sim-mini"><div class="${cls}" style="width:${pct}%"></div></div>
+      </div></td>`;
+    }
+
+    const timeShort = (r.checked_at || '').replace('T', ' ').slice(0, 19);
+    const conf = r.cls_conf !== null ? r.cls_conf.toFixed(3) : '—';
+    const thr  = r.threshold !== null ? r.threshold.toFixed(2) : '—';
+
+    return `<tr>
+      <td class="td-id">${r.id}</td>
+      <td class="td-time">${timeShort}</td>
+      <td class="td-file" title="${r.filename}">${r.filename}</td>
+      <td>${r.file_type === 'video' ? '<span style="color:#7b9eff">VID</span>' : '<span style="color:var(--accent)">IMG</span>'}</td>
+      <td>${r.brand ? r.brand.toUpperCase() : '—'}</td>
+      <td>${badge}</td>
+      ${simCell}
+      <td>${conf}</td>
+      <td style="color:var(--muted)">${thr}</td>
+    </tr>`;
+  }).join('');
+}
+
+loadData();
+</script>
+</body>
+</html>
