@@ -29,7 +29,7 @@ class ClassifierForCAM(nn.Module):
         base.load_state_dict(
             torch.load(weights_path, map_location="cpu", weights_only=True)
         )
-        self.features   = base.features   # свёрточный бэкбон
+        self.features   = base.features
         self.avgpool    = base.avgpool
         self.classifier = base.classifier
 
@@ -37,7 +37,7 @@ class ClassifierForCAM(nn.Module):
         x = self.features(x)
         x = self.avgpool(x)
         x = x.flatten(1)
-        return self.classifier(x)          # логиты, форма: (batch, num_classes)
+        return self.classifier(x)
 
     @property
     def target_layer(self):
@@ -49,8 +49,8 @@ def tensor_to_rgb(tensor: torch.Tensor) -> np.ndarray:
     mean = np.array([0.485, 0.456, 0.406])
     std  = np.array([0.229, 0.224, 0.225])
 
-    img = tensor.squeeze(0).permute(1, 2, 0).numpy()   # (H, W, 3)
-    img = img * std + mean                              # денормализация
+    img = tensor.squeeze(0).permute(1, 2, 0).numpy()
+    img = img * std + mean
     img = np.clip(img, 0, 1).astype(np.float32)
     return img
 
@@ -72,7 +72,7 @@ def run_gradcam_manual(cam_model: nn.Module,
     h2 = target.register_full_backward_hook(bwd_hook)
 
     cam_model.eval()
-    logits = cam_model(input_tensor)            # (1, num_classes)
+    logits = cam_model(input_tensor)
 
     cam_model.zero_grad()
     score = logits[0, target_class]
@@ -81,20 +81,16 @@ def run_gradcam_manual(cam_model: nn.Module,
     h1.remove()
     h2.remove()
 
-    # GAP градиентов → веса
-    grads = gradients["feat"]                   # (1, C, H, W)
-    acts  = activations["feat"]                 # (1, C, H, W)
-    weights = grads.mean(dim=(2, 3), keepdim=True)  # (1, C, 1, 1)
+    grads = gradients["feat"]
+    acts  = activations["feat"]
+    weights = grads.mean(dim=(2, 3), keepdim=True)
 
-    # Взвешенная сумма + ReLU
-    cam = (weights * acts).sum(dim=1).squeeze(0)    # (H, W)
+    cam = (weights * acts).sum(dim=1).squeeze(0)
     cam = torch.relu(cam).numpy()
 
-    # Нормализация
     if cam.max() > 0:
         cam = cam / cam.max()
 
-    # Resize до размера входа (CLS_IMG_SIZE × CLS_IMG_SIZE)
     cam = cv2.resize(cam, (config.CLS_IMG_SIZE, config.CLS_IMG_SIZE))
     return cam.astype(np.float32)
 
@@ -119,7 +115,6 @@ def add_verdict_banner(img_bgr: np.ndarray, result: dict) -> np.ndarray:
     out = img_bgr.copy()
     h, w = out.shape[:2]
 
-    # Полоса внизу
     banner_h = 28
     cv2.rectangle(out, (0, h - banner_h), (w, h), color_bgr, -1)
     cv2.putText(out, text, (6, h - 8),
@@ -139,30 +134,25 @@ def visualize_gradcam(image_path: str,
                       show: bool = False) -> str:
     transform = get_transform()
 
-    # Читаем изображение
     img_bgr = cv2.imread(image_path)
     if img_bgr is None:
         raise ValueError(f"Не удалось открыть: {image_path}")
     img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
 
-    # Подготовка тензора
     pil_img    = Image.fromarray(img_rgb).resize(
         (config.CLS_IMG_SIZE, config.CLS_IMG_SIZE)
     )
     input_tensor = transform(pil_img).unsqueeze(0).to(device)
 
-    # Верификация
     crop_rgb = np.array(pil_img)
     result   = classify_crop(crop_rgb, verify_model, classes, reference,
                              device, threshold, transform)
 
     brand_idx = classes.index(result["brand"])
 
-    # GradCAM
     cam_model.eval()
 
     if HAS_GRADCAM:
-        # Официальная библиотека pytorch-grad-cam
         with GradCAM(
             model=cam_model,
             target_layers=[cam_model.target_layer],
@@ -171,14 +161,13 @@ def visualize_gradcam(image_path: str,
             grayscale_cam = cam_ctx(
                 input_tensor=input_tensor,
                 targets=targets,
-            )[0]                           # (H, W), float32 [0,1]
+            )[0]
 
         rgb_float = tensor_to_rgb(input_tensor.cpu())
         overlay_rgb = show_cam_on_image(rgb_float, grayscale_cam, use_rgb=True)
         overlay_bgr = cv2.cvtColor(overlay_rgb, cv2.COLOR_RGB2BGR)
 
     else:
-        # Ручная реализация без библиотеки
         print("  [INFO] pytorch-grad-cam не установлен, "
               "используется встроенная реализация.")
         grayscale_cam = run_gradcam_manual(
@@ -187,10 +176,8 @@ def visualize_gradcam(image_path: str,
         rgb_float  = tensor_to_rgb(input_tensor.cpu())
         overlay_bgr = apply_colormap(grayscale_cam, rgb_float)
 
-    # Добавляем баннер с вердиктом
     result_img = add_verdict_banner(overlay_bgr, result)
 
-    # Сохранение
     stem     = os.path.splitext(os.path.basename(image_path))[0]
     out_name = stem + "_gradcam.jpg"
 
@@ -277,12 +264,10 @@ def main():
                         help="Показывать результат в окне")
     args = parser.parse_args()
 
-    # Папка для результатов: явная или дефолтная
     out_dir = args.outdir or os.path.join(config.WORK_DIR, "gradcam_results")
     os.makedirs(out_dir, exist_ok=True)
     print(f"Результаты будут сохранены в: {out_dir}")
 
-    # Проверяем наличие pytorch-grad-cam
     if not HAS_GRADCAM:
         print("=" * 60)
         print("ВНИМАНИЕ: pytorch-grad-cam не установлен.")
@@ -290,7 +275,6 @@ def main():
         print("Будет использована встроенная реализация GradCAM.")
         print("=" * 60)
 
-    # Загружаем verify-систему (EmbeddingExtractor + детектор + эталоны)
     detector, verify_model, classes, reference, device, thr = load_all(
         args.threshold
     )
@@ -303,7 +287,6 @@ def main():
     else:
         print("Режим: pytorch-grad-cam")
 
-    # Загружаем модель специально для GradCAM
     cam_model = load_cam_model(len(classes), device)
 
     if args.image:

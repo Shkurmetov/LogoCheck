@@ -20,7 +20,7 @@ class EmbeddingExtractor(nn.Module):
     def forward(self, x):
         x = self.features(x)
         x = self.avgpool(x)
-        return x.flatten(1)   # (batch, 1280), ненормализованный
+        return x.flatten(1)
 
 def build():
     print("=" * 55)
@@ -77,13 +77,13 @@ def build():
             stats["empty"] += 1
             continue
 
-        embs_tensor = torch.stack(embs)              # (N, 1280)
+        embs_tensor = torch.stack(embs)
         k = min(config.REFERENCE_N_CLUSTERS, len(embs))
 
         if k == 1:
             centroid = embs_tensor[0]
             centroid = centroid / centroid.norm()
-            centroids = centroid.unsqueeze(0)        # (1, 1280)
+            centroids = centroid.unsqueeze(0)
             stats["single"] += 1
         else:
             km = KMeans(n_clusters=k, random_state=config.RANDOM_SEED,
@@ -93,7 +93,7 @@ def build():
             centroids = centroids / centroids.norm(dim=1, keepdim=True)
             stats["kmeans"] += 1
 
-        reference[brand] = centroids                 # (k, 1280)
+        reference[brand] = centroids
 
     os.makedirs(config.WORK_DIR, exist_ok=True)
     torch.save(reference, config.REFERENCE_EMBEDDINGS)

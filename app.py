@@ -10,7 +10,6 @@ import db
 from verify_logo import load_all, verify_image
 from verify_video import process_video
 
-#  Папки для загрузок и результатов
 UPLOAD_FOLDER  = os.path.join(config.WORK_DIR, "web_uploads")
 RESULTS_FOLDER = os.path.join(config.WORK_DIR, "web_results")
 os.makedirs(UPLOAD_FOLDER,  exist_ok=True)
@@ -19,17 +18,14 @@ os.makedirs(RESULTS_FOLDER, exist_ok=True)
 ALLOWED_IMAGES = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 ALLOWED_VIDEOS = {".mp4", ".avi", ".mov", ".mkv"}
 
-#  Flask app
 app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024  # 500 MB
+app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024
 
-#  Инициализация БД и загрузка моделей
 db.init_db()
 print("Загрузка моделей...")
 _detector, _model, _classes, _reference, _device, _ = load_all()
 print(f"Готово. Брендов в базе: {len(_classes)}")
 
-#  Вспомогательные функции
 def ext(filename: str) -> str:
     return os.path.splitext(filename.lower())[1]
 
@@ -39,7 +35,6 @@ def is_image(filename: str) -> bool:
 def is_video(filename: str) -> bool:
     return ext(filename) in ALLOWED_VIDEOS
 
-#  Маршруты
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -91,7 +86,6 @@ def verify():
         except Exception as e:
             result = {"filename": safe_name, "error": str(e)}
 
-        # Логируем в SQLite
         if "error" not in result:
             db.log_check(
                 filename  = safe_name,
@@ -147,7 +141,6 @@ def _process_video(saved_path, saved_name, threshold, conf):
         "detections": [],
     }
 
-#  Точка входа
 if __name__ == "__main__":
     print("\n  Открой браузер: http://localhost:5000\n")
     app.run(debug=False, host="0.0.0.0", port=5000)

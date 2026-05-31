@@ -19,7 +19,7 @@ import config
 ARCHS = {
     "efficientnet_b0": {
         "display": "EfficientNet-B0",
-        "params_m": 5.3,      # примерное число параметров для описания
+        "params_m": 5.3,
     },
     "resnet50": {
         "display": "ResNet-50",
@@ -43,7 +43,6 @@ def build_model(arch: str, num_classes: int) -> nn.Module:
 
     elif arch == "mobilenet_v3_large":
         m = models.mobilenet_v3_large(weights=models.MobileNet_V3_Large_Weights.DEFAULT)
-        # В MobileNetV3-Large classifier[-1] — Linear(1280 → 1000)
         m.classifier[-1] = nn.Linear(1280, num_classes)
 
     else:
@@ -85,7 +84,6 @@ def get_loaders(batch_size: int, seed: int):
     gen = torch.Generator().manual_seed(seed)
     train_ds, val_ds = random_split(full, [train_size, val_size], generator=gen)
 
-    # val без аугментаций
     val_ds.dataset = datasets.ImageFolder(config.CROPS_DIR, transform=val_tf)
 
     train_loader = DataLoader(train_ds, batch_size=batch_size,
@@ -122,7 +120,6 @@ def train_arch(arch: str, num_classes: int, device: str,
     for epoch in range(1, epochs + 1):
         t0 = time.time()
 
-        # train
         model.train()
         loss_sum = 0.0
         for imgs, labels in tqdm(train_loader,
@@ -135,7 +132,6 @@ def train_arch(arch: str, num_classes: int, device: str,
             optimizer.step()
             loss_sum += loss.item()
 
-        # val
         model.eval()
         correct = total = 0
         with torch.no_grad():
@@ -161,7 +157,6 @@ def train_arch(arch: str, num_classes: int, device: str,
             best_acc = val_acc
             torch.save(model.state_dict(), wpath)
 
-    # Размер файла
     size_mb = os.path.getsize(wpath) / 1024 / 1024 if os.path.exists(wpath) else 0.0
 
     return {
@@ -188,17 +183,15 @@ def measure_inference_ms(arch: str, num_classes: int,
 
     dummy = torch.randn(1, 3, config.CLS_IMG_SIZE, config.CLS_IMG_SIZE)
 
-    # Прогрев
     with torch.no_grad():
         for _ in range(10):
             model(dummy)
 
-    # Замер
     t0 = time.perf_counter()
     with torch.no_grad():
         for _ in range(n_runs):
             model(dummy)
-    elapsed = (time.perf_counter() - t0) / n_runs * 1000   # мс
+    elapsed = (time.perf_counter() - t0) / n_runs * 1000
 
     return round(elapsed, 2)
 
@@ -211,19 +204,18 @@ def _best_idx(values: list, higher_is_better: bool) -> int:
 
 def generate_table_image(results: list[dict]) -> np.ndarray:
     FONT      = cv2.FONT_HERSHEY_SIMPLEX
-    FS        = 0.55        # font scale
-    FT        = 1           # font thickness
-    PAD       = 14          # padding внутри ячейки
+    FS        = 0.55
+    FT        = 1
+    PAD       = 14
     ROW_H     = 40
-    COL_W     = [260, 180, 180, 180]   # [метрика, arch0, arch1, arch2]
+    COL_W     = [260, 180, 180, 180]
 
-    # Цвета
-    BG_HDR    = (40,  40,  40)    # фон заголовка
-    BG_ROW0   = (255, 255, 255)   # фон чётных строк
-    BG_ROW1   = (240, 243, 248)   # фон нечётных строк
-    C_HDR     = (255, 255, 255)   # текст заголовка
-    C_NORMAL  = (30,  30,  30)    # обычный текст
-    C_BEST    = (0,   140, 0)     # лучшее значение
+    BG_HDR    = (40,  40,  40)
+    BG_ROW0   = (255, 255, 255)
+    BG_ROW1   = (240, 243, 248)
+    C_HDR     = (255, 255, 255)
+    C_NORMAL  = (30,  30,  30)
+    C_BEST    = (0,   140, 0)
     C_BORDER  = (180, 180, 180)
 
     arch_names = [r["display"] for r in results]
@@ -263,8 +255,8 @@ def generate_table_image(results: list[dict]) -> np.ndarray:
 
     n_cols   = 1 + len(results)
     total_w  = sum(COL_W[:n_cols])
-    n_rows   = 1 + len(rows_data)         # заголовок + данные
-    total_h  = n_rows * ROW_H + 2         # +2 для нижней границы
+    n_rows   = 1 + len(rows_data)
+    total_h  = n_rows * ROW_H + 2
 
     img = np.ones((total_h, total_w, 3), dtype=np.uint8) * 255
 
@@ -282,12 +274,10 @@ def generate_table_image(results: list[dict]) -> np.ndarray:
         cv2.line(img, (x1-1, y0), (x1-1, y1), C_BORDER, 1)
         cv2.line(img, (x0, y1-1), (x1, y1-1), C_BORDER, 1)
 
-    # Заголовок
     draw_cell(0, 0, "Метрика", BG_HDR, C_HDR, bold=True)
     for j, name in enumerate(arch_names):
         draw_cell(0, j+1, name, BG_HDR, C_HDR, bold=True)
 
-    # Строки данных
     for i, row in enumerate(rows_data):
         bg = BG_ROW0 if i % 2 == 0 else BG_ROW1
         draw_cell(i+1, 0, row["label"], bg, C_NORMAL)
@@ -301,7 +291,6 @@ def generate_table_image(results: list[dict]) -> np.ndarray:
             fg = C_BEST if j == best_j else C_NORMAL
             draw_cell(i+1, j+1, val, bg, fg, bold=(j == best_j))
 
-    # Внешняя рамка
     cv2.rectangle(img, (0, 0), (total_w-1, total_h-1), C_BORDER, 2)
 
     return img
@@ -310,14 +299,13 @@ def generate_table_image(results: list[dict]) -> np.ndarray:
 def generate_curves_image(results: list[dict]) -> np.ndarray:
     W, H   = 700, 400
     PAD    = 60
-    COLORS = [(200, 80,  0),    # синий (BGR: EfficientNet)
-              (0,   100, 200),  # красный (ResNet)
-              (0,   160, 0)]    # зелёный (MobileNet)
+    COLORS = [(200, 80,  0),
+              (0,   100, 200),
+              (0,   160, 0)]
     FONT   = cv2.FONT_HERSHEY_SIMPLEX
 
     img = np.ones((H, W, 3), dtype=np.uint8) * 255
 
-    # Оси
     cv2.line(img, (PAD, PAD),       (PAD, H-PAD),   (100,100,100), 1)
     cv2.line(img, (PAD, H-PAD),     (W-PAD, H-PAD), (100,100,100), 1)
     cv2.putText(img, "Val Accuracy", (PAD, 25), FONT, 0.5, (50,50,50), 1, cv2.LINE_AA)
@@ -333,7 +321,6 @@ def generate_curves_image(results: list[dict]) -> np.ndarray:
         cv2.line(img, (PAD-4, py), (W-PAD, py), (220,220,220), 1)
         cv2.putText(img, f"{v:.2f}", (4, py+4), FONT, 0.38, (100,100,100), 1)
 
-    # Кривые
     for idx, r in enumerate(results):
         accs  = r["val_accs"]
         color = COLORS[idx % len(COLORS)]
@@ -364,7 +351,6 @@ def run(archs_to_run: list[str],
 
     os.makedirs(config.WORK_DIR, exist_ok=True)
 
-    # Определяем число классов
     if not os.path.exists(config.CROPS_DIR):
         print(f"[ОШИБКА] CROPS_DIR не найден: {config.CROPS_DIR}")
         print("Запустите prepare_data.py → make_crops() сначала.")
@@ -376,7 +362,6 @@ def run(archs_to_run: list[str],
 
     results_path = os.path.join(config.WORK_DIR, "comparison_results.json")
 
-    # Загружаем уже существующие результаты
     existing: dict[str, dict] = {}
     if os.path.exists(results_path):
         with open(results_path, encoding="utf-8") as f:
@@ -407,7 +392,6 @@ def run(archs_to_run: list[str],
             r = train_arch(arch, num_classes, device,
                            epochs, batch_size, lr, config.RANDOM_SEED)
 
-        # Замер инференса
         if os.path.exists(wpath):
             print(f"  Замер инференса {arch}...")
             r["inference_ms"] = measure_inference_ms(arch, num_classes, wpath)
@@ -421,25 +405,21 @@ def run(archs_to_run: list[str],
         print("Нет результатов для отображения.")
         return
 
-    # Сохраняем JSON
     with open(results_path, "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
     print(f"\n✔ Результаты сохранены: {results_path}")
 
-    # Таблица сравнения
     table_img   = generate_table_image(results)
     table_path  = os.path.join(config.WORK_DIR, "comparison_table.jpg")
     cv2.imwrite(table_path, table_img)
     print(f"✔ Таблица сохранена:    {table_path}")
 
-    # Кривые обучения (только если есть данные)
     if any(r.get("val_accs") for r in results):
         curves_img  = generate_curves_image(results)
         curves_path = os.path.join(config.WORK_DIR, "comparison_curves.jpg")
         cv2.imwrite(curves_path, curves_img)
         print(f"✔ Кривые сохранены:     {curves_path}")
 
-    # Вывод в терминал
     print("\n" + "─"*60)
     print(f"{'Архитектура':<20} {'Val Acc':>9} {'Params':>10} "
           f"{'Size MB':>8} {'Эпоха(с)':>9} {'Inference':>10}")
@@ -454,7 +434,6 @@ def run(archs_to_run: list[str],
               f"{inf:>10}")
     print("─"*60)
 
-    # Лучшая модель — только сообщаем, ничего не трогаем
     best = max(results, key=lambda x: x["best_val_acc"])
     print(f"\n  Лучшая архитектура по val_acc: {best['display']} "
           f"({best['best_val_acc']*100:.2f}%)")

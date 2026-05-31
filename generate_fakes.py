@@ -150,11 +150,9 @@ def save_roc_png(fprs: list, tprs: list, best_thr: float,
     W, H, PAD = 640, 480, 60
     img = np.full((H, W, 3), 18, dtype=np.uint8)
 
-    # Оси
     cv2.rectangle(img, (PAD, PAD), (W-PAD, H-PAD), (40, 40, 40), -1)
-    cv2.line(img, (PAD, H-PAD), (W-PAD, H-PAD), (80, 80, 80), 1)  # x
-    cv2.line(img, (PAD, PAD),   (PAD, H-PAD),   (80, 80, 80), 1)  # y
-    # Диагональ случайного классификатора
+    cv2.line(img, (PAD, H-PAD), (W-PAD, H-PAD), (80, 80, 80), 1)
+    cv2.line(img, (PAD, PAD),   (PAD, H-PAD),   (80, 80, 80), 1)
     cv2.line(img, (PAD, H-PAD), (W-PAD, PAD), (60, 60, 60), 1)
 
     def to_px(fpr, tpr):
@@ -166,7 +164,6 @@ def save_roc_png(fprs: list, tprs: list, best_thr: float,
     for i in range(len(pts)-1):
         cv2.line(img, pts[i], pts[i+1], (197, 240, 58), 2)
 
-    # Заголовок
     cv2.putText(img, f"ROC Curve  AUC={auc:.3f}",
                 (PAD, PAD-10), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (197, 240, 58), 1)
     cv2.putText(img, f"Best threshold: {best_thr}",
@@ -202,21 +199,18 @@ def run(n_per_brand: int = 30, threshold: float | None = None,
         threshold = thr
     print(f"Порог: {threshold} | Устройство: {device}")
 
-    # Выходная папка
     eval_dir  = os.path.join(config.WORK_DIR, "fake_eval")
     ex_dir    = os.path.join(eval_dir, "examples")
     os.makedirs(ex_dir, exist_ok=True)
 
     transform = get_transform()
 
-    # Собираем кропы (настоящие)
     real_paths = collect_crops(config.CROPS_DIR, brands, n_per_brand)
     print(f"Настоящих кропов: {len(real_paths)}")
     if not real_paths:
         print("[ОШИБКА] Кропы не найдены. Запусти prepare_data.py -> make_crops()")
         return
 
-    # Сбор данных
 
     all_y_true:  list[int]   = []
     all_y_scores: list[float] = []
@@ -254,7 +248,6 @@ def run(n_per_brand: int = 30, threshold: float | None = None,
             per_transform[t_name]["y_true"].append(1)
             per_transform[t_name]["y_scores"].append(res["similarity"])
 
-            # Сохраняем примеры
             if examples_saved < save_examples:
                 ann = annotate_image(fake_bgr, t_name,
                                      res["similarity"], res["is_fake"])
@@ -262,14 +255,12 @@ def run(n_per_brand: int = 30, threshold: float | None = None,
                 cv2.imwrite(os.path.join(ex_dir, f"{t_name}_{stem}.jpg"), ann)
                 examples_saved += 1
 
-    # Метрики по трансформациям
     print("\n" + "=" * 60)
     print(f"{'ТРАНСФОРМАЦИЯ':<14} {'PREC':>6} {'REC':>6} {'F1':>6} {'ACC':>6}")
     print("-" * 60)
 
     transform_metrics = {}
     for t_name, data in per_transform.items():
-        # Добавляем REAL-образцы к каждой трансформации для честного расчёта
         y_t = list(np.zeros(len(real_paths[:len(data["y_true"])]), dtype=int)) \
               + data["y_true"]
         y_s = all_y_scores[:len(real_paths[:len(data["y_true"])])] \
@@ -280,7 +271,6 @@ def run(n_per_brand: int = 30, threshold: float | None = None,
         print(f"  {t_name:<12} {m['precision']:>6.3f} {m['recall']:>6.3f} "
               f"{m['f1']:>6.3f} {m['accuracy']:>6.3f}")
 
-    # Общие метрики
     overall = compute_metrics(all_y_true, all_y_scores, threshold)
     print("-" * 60)
     print(f"  {'OVERALL':<12} {overall['precision']:>6.3f} {overall['recall']:>6.3f} "
@@ -288,7 +278,6 @@ def run(n_per_brand: int = 30, threshold: float | None = None,
     print(f"\n  TP={overall['tp']}  FP={overall['fp']}  "
           f"TN={overall['tn']}  FN={overall['fn']}")
 
-    # ROC
     fprs, tprs, thrs = compute_roc(all_y_true, all_y_scores)
     auc = trapz_auc(fprs, tprs)
     best_thr, best_j = find_best_threshold(all_y_true, all_y_scores)
@@ -300,12 +289,10 @@ def run(n_per_brand: int = 30, threshold: float | None = None,
     if abs(best_thr - config.FAKE_THRESHOLD) > 0.05:
         print(f"  ⚠ Рекомендуется обновить FAKE_THRESHOLD = {best_thr}")
 
-    # Сохраняем ROC
     roc_path = os.path.join(eval_dir, "roc_curve.png")
     save_roc_png(fprs, tprs, best_thr, auc, roc_path)
     print(f"\n  ROC-кривая: {roc_path}")
 
-    # Сохраняем JSON
     report = {
         "threshold_used":     threshold,
         "optimal_threshold":  best_thr,

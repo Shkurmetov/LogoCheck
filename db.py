@@ -46,7 +46,6 @@ def log_check(filename: str, file_type: str,
                      d.get("similarity"), d.get("cls_conf"), threshold),
                 )
         else:
-            # Видео или изображение без логотипов
             conn.execute(
                 """INSERT INTO checks
                    (checked_at, filename, file_type, threshold)

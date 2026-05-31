@@ -42,12 +42,12 @@ def export_classifier():
         dummy,
         out_path,
         export_params=True,
-        opset_version=17,          # стабильный opset, поддержан везде
-        do_constant_folding=True,  # оптимизация: свёртка констант
+        opset_version=17,
+        do_constant_folding=True,
         input_names=["image"],
         output_names=["logits"],
         dynamic_axes={
-            "image":  {0: "batch_size"},   # динамический batch
+            "image":  {0: "batch_size"},
             "logits": {0: "batch_size"},
         },
         verbose=False,

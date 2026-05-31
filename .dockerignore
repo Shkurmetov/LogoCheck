@@ -1,39 +1,30 @@
-# Игнорируем всё что не нужно внутри Docker-образа
-
-# Виртуальное окружение Python
 venv/
 .venv/
 env/
 
-# Веса моделей и датасеты — они монтируются через volume
 *.pt
 *.pth
 *.onnx
 datasets/
 logo_recognition_work/
 
-# Временные файлы Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
 
-# IDE
 .idea/
 .vscode/
 *.iml
 
-# Результаты запусков
 runs/
 web_uploads/
 web_results/
 
-# Git
 .git/
 .gitignore
 
-# Прочее
 *.log
 .DS_Store
 Thumbs.db

@@ -21,7 +21,7 @@ CLS_BATCH       = 32
 CLS_LR          = 1e-4
 CLS_IMG_SIZE    = 224
 TRAIN_VAL_SPLIT = 0.8
-CLS_PATIENCE    = 10   # early stopping
+CLS_PATIENCE    = 10
 
 FAKE_THRESHOLD       = 0.50
 REFERENCE_N_CLUSTERS = 5

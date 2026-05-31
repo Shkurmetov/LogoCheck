@@ -22,7 +22,7 @@ class TrackState:
 
         hist     = self.history[track_id]
         smoothed = result.copy()
-        smoothed["is_fake"] = sum(hist) > len(hist) / 2   # majority vote
+        smoothed["is_fake"] = sum(hist) > len(hist) / 2
         return smoothed
 
     def get_last(self, track_id: int):

@@ -84,7 +84,7 @@ def classify_crop(crop_rgb, model, classes, reference, device, threshold, transf
 
         if brand in reference:
             centroids  = reference[brand]
-            sims       = centroids @ emb   # косинусное сходство по каждому кластеру
+            sims       = centroids @ emb
             similarity = sims.max().item()
         else:
             similarity = 0.0

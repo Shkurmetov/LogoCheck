@@ -29,7 +29,6 @@
 
 html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 13px; }
 
-/* ── Header ─────────────────────────── */
 header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 24px; height: 46px;
@@ -46,10 +45,8 @@ header {
 }
 .nav a:hover, .nav a.active { color: var(--accent); }
 
-/* ── Page layout ─────────────────────── */
 .page { max-width: 1200px; margin: 0 auto; padding: 28px 24px; }
 
-/* ── Stats row ───────────────────────── */
 .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
 .stat-card {
   background: var(--s1); border: 1px solid var(--border);
@@ -62,7 +59,6 @@ header {
 .sv-fake   { color: var(--fake); }
 .sv-accent { color: var(--accent); }
 
-/* ── Top brands ──────────────────────── */
 .section-title {
   font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
   color: var(--muted); margin-bottom: 12px;
@@ -75,7 +71,6 @@ header {
 }
 .brand-cnt { color: var(--accent); font-weight: 600; }
 
-/* ── Filters ─────────────────────────── */
 .filters {
   display: flex; align-items: center; gap: 12px;
   margin-bottom: 14px; flex-wrap: wrap;
@@ -100,7 +95,6 @@ header {
 .search-box:focus { border-color: var(--accent); }
 .search-box::placeholder { color: var(--muted); }
 
-/* ── Table ───────────────────────────── */
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; }
 thead th {
@@ -138,7 +132,6 @@ td {
 .sm-fill-real { height: 100%; background: var(--real); }
 .sm-fill-fake { height: 100%; background: var(--fake); }
 
-/* ── Empty / loading ─────────────────── */
 .table-msg {
   text-align: center; padding: 60px 20px;
   font-size: 10px; color: var(--muted); letter-spacing: 0.06em; line-height: 2.4;
@@ -163,7 +156,6 @@ td {
 
 <div class="page">
 
-  <!-- Статистика -->
   <div class="stats-row" id="stats-row">
     <div class="stat-card"><div class="stat-label">ВСЕГО ПРОВЕРОК</div><div class="stat-value sv-total" id="st-total">—</div></div>
     <div class="stat-card"><div class="stat-label">НАСТОЯЩИХ</div><div class="stat-value sv-real" id="st-real">—</div></div>
@@ -171,13 +163,11 @@ td {
     <div class="stat-card"><div class="stat-label">ДОЛЯ ФЕЙКОВ</div><div class="stat-value sv-accent" id="st-rate">—</div></div>
   </div>
 
-  <!-- Топ брендов -->
   <div class="section-title">ТОП БРЕНДОВ</div>
   <div class="brands-row" id="brands-row">
     <span style="font-size:10px;color:var(--muted)">Загрузка...</span>
   </div>
 
-  <!-- Фильтры -->
   <div class="filters">
     <button class="filter-btn active" data-filter="all"    onclick="setFilter('all',this)">ВСЕ</button>
     <button class="filter-btn f-real" data-filter="real"   onclick="setFilter('real',this)">НАСТОЯЩИЕ</button>
@@ -187,7 +177,6 @@ td {
     <input class="search-box" id="search-box" placeholder="поиск по бренду / файлу..." oninput="renderTable()">
   </div>
 
-  <!-- Таблица -->
   <div class="table-wrap">
     <table>
       <thead>
@@ -271,7 +260,6 @@ function renderTable() {
   }
 
   document.getElementById('tbody').innerHTML = filtered.map(r => {
-    // Вердикт
     let badge;
     if (r.file_type === 'video') {
       badge = `<span class="verdict-badge vb-video">ВИДЕО</span>`;
@@ -283,7 +271,6 @@ function renderTable() {
       badge = `<span class="verdict-badge vb-real">REAL</span>`;
     }
 
-    // Сходство с мини-баром
     let simCell = '<td>—</td>';
     if (r.similarity !== null) {
       const pct = Math.round(r.similarity * 100);

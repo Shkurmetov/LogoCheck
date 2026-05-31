@@ -12,20 +12,16 @@ from torchvision import datasets, models, transforms
 
 import config
 
-#  Трансформации
 
 def get_transforms():
     train_transform = transforms.Compose([
         transforms.Resize((config.CLS_IMG_SIZE, config.CLS_IMG_SIZE)),
 
-        # Базовые аугментации
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(degrees=15),
 
-        # Перспективное искажение — имитирует съёмку под углом
         transforms.RandomPerspective(distortion_scale=0.2, p=0.4),
 
-        # Цветовые изменения — важно для разнообразия условий освещения
         transforms.ColorJitter(
             brightness=0.3,
             contrast=0.3,
@@ -33,7 +29,6 @@ def get_transforms():
             hue=0.05,
         ),
 
-        # Случайное размытие — имитирует расфокус/низкое качество фото
         transforms.RandomApply([transforms.GaussianBlur(kernel_size=3)], p=0.2),
 
         transforms.ToTensor(),
@@ -50,7 +45,6 @@ def get_transforms():
 
     return train_transform, val_transform
 
-#  Сохранение метрик
 
 def save_csv(log_path: str, rows: list[dict]):
     if not rows:
@@ -84,7 +78,6 @@ def save_curves_png(log_rows: list[dict], out_path: str):
 
     FONT = cv2.FONT_HERSHEY_SIMPLEX
 
-    # Верхний график: train loss
     cv2.rectangle(img, (PAD, PAD), (W - PAD, H // 2 - 5), (255, 255, 255), -1)
     cv2.rectangle(img, (PAD, PAD), (W - PAD, H // 2 - 5), (200, 200, 200),  1)
     cv2.putText(img, "Train Loss", (PAD + 6, PAD + 18),
@@ -94,25 +87,21 @@ def save_curves_png(log_rows: list[dict], out_path: str):
     for i in range(1, len(pts_loss)):
         cv2.line(img, pts_loss[i-1], pts_loss[i], (200, 80, 0), 2, cv2.LINE_AA)
 
-    # Подпись минимума
     min_loss_i = losses.index(min(losses))
     cv2.circle(img, pts_loss[min_loss_i], 4, (200, 80, 0), -1)
     cv2.putText(img, f"min={losses[min_loss_i]:.4f}",
                 (pts_loss[min_loss_i][0] + 6, pts_loss[min_loss_i][1] - 6),
                 FONT, 0.38, (200, 80, 0), 1)
 
-    # Нижний график: val accuracy
     mid = H // 2 + 5
     cv2.rectangle(img, (PAD, mid), (W - PAD, H - PAD), (255, 255, 255), -1)
     cv2.rectangle(img, (PAD, mid), (W - PAD, H - PAD), (200, 200, 200),  1)
     cv2.putText(img, "Val Accuracy", (PAD + 6, mid + 18),
                 FONT, 0.5, (60, 60, 60), 1, cv2.LINE_AA)
 
-    # Линия best val
     best_acc   = max(val_accs)
     best_acc_i = val_accs.index(best_acc)
 
-    # Горизонтальная пунктирная линия на уровне best
     _, py_best = px_acc(0, best_acc)
     for x in range(PAD, W - PAD, 8):
         cv2.line(img, (x, py_best), (min(x + 4, W - PAD), py_best),
@@ -127,7 +116,6 @@ def save_curves_png(log_rows: list[dict], out_path: str):
                 (pts_acc[best_acc_i][0] + 7, pts_acc[best_acc_i][1] - 6),
                 FONT, 0.38, (0, 140, 0), 1)
 
-    # Подписи осей X (эпохи)
     for i in [0, n // 4, n // 2, 3 * n // 4, n - 1]:
         px, _ = px_acc(i, 0)
         cv2.putText(img, str(epochs[i]), (px - 6, H - PAD + 16),
@@ -138,7 +126,6 @@ def save_curves_png(log_rows: list[dict], out_path: str):
 
     cv2.imwrite(out_path, img)
 
-#  Обучение
 
 def train():
     print("=" * 55)
@@ -158,19 +145,16 @@ def train():
 
     train_transform, val_transform = get_transforms()
 
-    # Полный датасет
     full_dataset = datasets.ImageFolder(config.CROPS_DIR, transform=train_transform)
     num_classes  = len(full_dataset.classes)
     print(f"Классов:     {num_classes}")
     print(f"Изображений: {len(full_dataset)}")
 
-    # Сохраняем список классов
     os.makedirs(config.WORK_DIR, exist_ok=True)
     with open(config.CLASSES_FILE, "w", encoding="utf-8") as f:
         f.write("\n".join(full_dataset.classes))
     print(f"Классы сохранены: {config.CLASSES_FILE}")
 
-    # Train / val split
     val_size   = int(len(full_dataset) * (1 - config.TRAIN_VAL_SPLIT))
     train_size = len(full_dataset) - val_size
     generator  = torch.Generator().manual_seed(config.RANDOM_SEED)
@@ -193,7 +177,6 @@ def train():
 
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
 
-    # Adam + CosineAnnealingLR — плавно снижает lr до нуля к концу обучения
     optimizer = optim.Adam(model.parameters(), lr=config.CLS_LR)
     scheduler = optim.lr_scheduler.CosineAnnealingLR(
         optimizer, T_max=config.CLS_EPOCHS, eta_min=1e-6
@@ -201,7 +184,6 @@ def train():
 
     best_val_acc    = 0.0
     patience_count  = 0
-    # Early stopping patience берём из config (если есть) или 10 эпох
     es_patience     = getattr(config, "CLS_PATIENCE", 10)
 
     log_rows   = []
@@ -215,7 +197,6 @@ def train():
     for epoch in range(1, config.CLS_EPOCHS + 1):
         t_ep = time.perf_counter()
 
-        # Train
         model.train()
         train_loss = 0.0
         for imgs, labels in train_loader:
@@ -230,7 +211,6 @@ def train():
         current_lr = scheduler.get_last_lr()[0]
         scheduler.step()
 
-        # Val
         model.eval()
         correct = total = 0
         with torch.no_grad():
@@ -265,7 +245,6 @@ def train():
             "epoch_sec":  round(ep_time, 1),
         })
 
-        # Early stopping
         if patience_count >= es_patience:
             print(f"\n  Early stopping на эпохе {epoch} "
                   f"(нет улучшения {es_patience} эпох подряд)")
@@ -277,7 +256,6 @@ def train():
     print(f"  Лучшая val_acc: {best_val_acc:.4f}")
     print(f"  Веса: {config.CLASSIFIER_WEIGHTS}")
 
-    # Сохраняем метрики
     log_path   = os.path.join(config.WORK_DIR, "training_log.csv")
     curves_path = os.path.join(config.WORK_DIR, "training_curves.png")
 

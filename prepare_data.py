@@ -24,7 +24,6 @@ def prepare_detector_dataset():
         os.makedirs(os.path.join(config.DET_DATASET, "images", split), exist_ok=True)
         os.makedirs(os.path.join(config.DET_DATASET, "labels", split), exist_ok=True)
 
-    # Собираем все XML-файлы
     samples = []
     for brand in os.listdir(config.SOURCE_DIR):
         brand_path = os.path.join(config.SOURCE_DIR, brand)
@@ -88,7 +87,6 @@ def prepare_detector_dataset():
         if skipped:
             print(f"  Пропущено ({split}): {skipped} файлов (изображение не найдено / нет bbox)")
 
-    # Создаём data.yaml для YOLO
     yaml_path = os.path.join(config.DET_DATASET, "data.yaml")
     with open(yaml_path, "w") as f:
         f.write(
@@ -147,7 +145,6 @@ def make_crops():
                 cv2.imwrite(save_path, crop)
                 total_crops += 1
 
-    # Удаляем бренды без кропов
     removed = []
     for brand in os.listdir(config.CROPS_DIR):
         brand_path = os.path.join(config.CROPS_DIR, brand)

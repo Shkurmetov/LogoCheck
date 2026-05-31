@@ -29,10 +29,8 @@
 
 html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 13px; overflow: hidden; }
 
-/* ── Layout ─────────────────────────── */
 .app { display: grid; grid-template-rows: 46px 1fr; height: 100vh; }
 
-/* ── Header ──────────────────────────── */
 header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 24px;
@@ -53,13 +51,10 @@ header {
 .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--real); animation: blink 2.5s ease-in-out infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
 
-/* ── Main ────────────────────────────── */
 main { display: grid; grid-template-columns: 340px 1fr; overflow: hidden; }
 
-/* ── Left panel ──────────────────────── */
 .left { display: flex; flex-direction: column; border-right: 1px solid var(--border); overflow: hidden; background: var(--s1); }
 
-/* Drop zone */
 .dropzone {
   margin: 18px 18px 0;
   border: 1px dashed var(--border2);
@@ -91,7 +86,6 @@ main { display: grid; grid-template-columns: 340px 1fr; overflow: hidden; }
 .dz-sub { font-size: 10px; color: var(--muted); letter-spacing: 0.04em; }
 #file-input { display: none; }
 
-/* Queue */
 .q-label {
   padding: 12px 18px 8px;
   font-size: 9px; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase;
@@ -107,7 +101,6 @@ main { display: grid; grid-template-columns: 340px 1fr; overflow: hidden; }
   font-size: 10px; line-height: 2.2; letter-spacing: 0.04em;
 }
 
-/* File card */
 .file-card {
   display: flex; align-items: center; gap: 10px;
   padding: 9px 18px; cursor: pointer;
@@ -140,7 +133,6 @@ main { display: grid; grid-template-columns: 340px 1fr; overflow: hidden; }
 }
 @keyframes spin { to{transform:rotate(360deg)} }
 
-/* Settings */
 .settings {
   border-top: 1px solid var(--border);
   padding: 14px 18px; flex-shrink: 0;
@@ -162,10 +154,8 @@ input[type=range]::-webkit-slider-thumb {
   border-radius: 50%; background: var(--accent); cursor: pointer;
 }
 
-/* ── Right panel ─────────────────────── */
 .right { display: flex; flex-direction: column; overflow: hidden; }
 
-/* Viewer */
 .viewer {
   flex: 1; display: flex; align-items: center; justify-content: center;
   background: var(--bg); position: relative; overflow: hidden;
@@ -180,7 +170,6 @@ input[type=range]::-webkit-slider-thumb {
 .ve-dot-real { color: var(--real); }
 .ve-dot-fake { color: var(--fake); }
 
-/* scan line when processing */
 .viewer.scanning::after {
   content: '';
   position: absolute; left: 0; right: 0; height: 1px;
@@ -195,7 +184,6 @@ input[type=range]::-webkit-slider-thumb {
 }
 @keyframes pop-in { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:none} }
 
-/* ── Bottom: detections ──────────────── */
 .det-panel {
   border-top: 1px solid var(--border);
   background: var(--s1);
@@ -235,7 +223,6 @@ input[type=range]::-webkit-slider-thumb {
   font-size: 10px; color: var(--muted); letter-spacing: 0.06em;
 }
 
-/* video bar */
 .vid-bar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 20px; height: 100%;
@@ -267,7 +254,6 @@ input[type=range]::-webkit-slider-thumb {
   </header>
 
   <main>
-    <!-- ── Left ── -->
     <aside class="left">
 
       <div class="dropzone" id="dropzone">
@@ -300,7 +286,6 @@ input[type=range]::-webkit-slider-thumb {
 
     </aside>
 
-    <!-- ── Right ── -->
     <section class="right">
       <div class="viewer" id="viewer">
         <div class="viewer-empty">
@@ -335,7 +320,6 @@ sConf.oninput      = () => { vConf.textContent      = (+sConf.value).toFixed(2);
 let items    = [];
 let activeId = null;
 
-/* ── Drag & Drop ─────────────────────── */
 dropzone.addEventListener('click',     () => fileInput.click());
 dropzone.addEventListener('dragover',  e  => { e.preventDefault(); dropzone.classList.add('over'); });
 dropzone.addEventListener('dragleave', () => dropzone.classList.remove('over'));
@@ -348,7 +332,6 @@ fileInput.addEventListener('change', () => addFiles([...fileInput.files]));
 const isImg = n => /\.(jpe?g|png|bmp|webp)$/i.test(n);
 const isVid = n => /\.(mp4|avi|mov|mkv)$/i.test(n);
 
-/* ── File handling ───────────────────── */
 function addFiles(files) {
   const valid = files.filter(f => isImg(f.name) || isVid(f.name));
   if (!valid.length) return;
@@ -363,7 +346,6 @@ function addFiles(files) {
   });
 }
 
-/* ── Upload ──────────────────────────── */
 async function upload(item) {
   item.status = 'run';
   renderQueue();
@@ -392,7 +374,6 @@ async function upload(item) {
   if (activeId === item.id) renderViewer(item);
 }
 
-/* ── Queue render ────────────────────── */
 function renderQueue() {
   if (!items.length) {
     queueEl.innerHTML = '<div class="empty-state">Загрузи фото или видео<br>чтобы начать проверку</div>';
@@ -427,7 +408,6 @@ function selectItem(id) {
   if (item) renderViewer(item);
 }
 
-/* ── Viewer render ───────────────────── */
 function renderViewer(item) {
   if (item.status === 'run' || item.status === 'pending') {
     viewer.className = 'viewer scanning';
@@ -453,7 +433,6 @@ function renderViewer(item) {
   if (!item.result) return;
   const { result_url, type, detections } = item.result;
 
-  // Media
   if (type === 'image') {
     viewer.innerHTML = `<img class="result-img" src="${result_url}?t=${Date.now()}" alt="result">`;
   } else {
@@ -462,7 +441,6 @@ function renderViewer(item) {
     </video>`;
   }
 
-  // Bottom panel
   detPanel.style.display = '';
 
   if (type === 'image' && detections?.length) {
